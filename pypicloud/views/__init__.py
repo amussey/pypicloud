@@ -2,7 +2,7 @@
 import logging
 import traceback
 
-from pyramid.httpexceptions import HTTPException, HTTPServerError
+from pyramid.httpexceptions import HTTPException, HTTPFound, HTTPServerError
 from pyramid.settings import asbool
 from pyramid.view import view_config
 from pyramid_duh import addslash
@@ -17,6 +17,13 @@ LOG = logging.getLogger(__name__)
 @addslash
 def get_index(request):
     """ Render a home screen """
+    authenticated_index = \
+        request.registry.settings.get('pypi.authenticated_index', 'false')
+
+    if 'true' == authenticated_index.lower() and request.userid is None:
+        login_url = '{}/{}'.format(request.app_url().rstrip('/'), 'login')
+        return HTTPFound(location=login_url)
+
     return {"version": __version__}
 
 
